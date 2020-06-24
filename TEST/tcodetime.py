@@ -53,7 +53,7 @@ def trackCodeTime(today, code_duration):
         data_tuple = (today, code_duration)
         cursor.execute(sqlite_insert_with_param, data_tuple)
         sqliteConnection.commit()
-
+        
         print("Session recorded successfully!")
 
     except:
