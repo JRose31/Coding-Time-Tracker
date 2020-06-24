@@ -10,10 +10,10 @@ current_time = now.strftime("%Y:%m:%d:%H:%M:%S")
 
 #make datetime object to be able to operate with times
 now_time_obj = datetime(year=int(current_time[:4]), month=int(current_time[5:7]), day=int(current_time[8:10]), hour=int(current_time[11:13]), minute=int(current_time[14:16]), second=int(current_time[17:]))
-print(now_time_obj)
+print("Starting @:", now_time_obj)
 
 #initiate end time
-stop = input("Press any key to stop script")
+stop = input("Press enter to stop script")
 
 #get current time when script stops
 later = datetime.now()
@@ -23,11 +23,28 @@ end_time = later.strftime("%Y:%m:%d:%H:%M:%S")
 
 #make datetime object to be able to operate with times
 end_time_obj = datetime(year=int(end_time[:4]), month=int(end_time[5:7]), day=int(end_time[8:10]), hour=int(end_time[11:13]), minute=int(end_time[14:16]), second=int(end_time[17:]))
-print(end_time_obj)
+print("Session ending @:", end_time_obj)
 
 #get difference of two times
 duration = end_time_obj - now_time_obj
-print(duration)
+print("Session duration recorded:", duration)
+
+#datetime.datetime objects cannot be added so I created a function to add them by parsing their numbers and adding rules for adding times
+def add_datetime(etime, ntime):
+    sec = int(etime[6:])+int(ntime[6:])
+    extramin = 0
+    min = int(etime[3:5])+int(ntime[3:5])
+    hr = int(etime[:2])+int(ntime[:2])
+
+    if sec > 59:
+        sec = sec-60
+        extramin += 1
+    if min > 59:
+        min = min-60
+        hr += 1
+
+    print("New returned duration:", str(hr).zfill(2)+":"+str(min+extramin).zfill(2)+":"+str(sec).zfill(2))
+    return(str(hr).zfill(2)+":"+str(min+extramin).zfill(2)+":"+str(sec).zfill(2))
 
 def trackCodeTime(today, code_duration):
     try:
@@ -53,7 +70,7 @@ def trackCodeTime(today, code_duration):
         data_tuple = (today, code_duration)
         cursor.execute(sqlite_insert_with_param, data_tuple)
         sqliteConnection.commit()
-        
+
         print("Session recorded successfully!")
 
     except:
@@ -62,48 +79,59 @@ def trackCodeTime(today, code_duration):
         #view all current data in database
         cursor.execute("SELECT * FROM codeTracker")
         existing = cursor.fetchall()
-        print(existing)
+        print("Existing data:", existing)
+        print("Today:", today)
 
-        for i in existing:
 
-            #if date exist in table (you coded earlier today)
-            if today == i[0]:
+        #if date exist in table (you coded earlier today)
+        if today == existing[(len(existing)-1)][0]:
 
-                #get what duration is in table for today
-                current_duration = '''SELECT time FROM codeTracker WHERE date = ?'''
-                duration_tup = cursor.execute(current_duration, (today,))
+            #get what duration is in table for today
+            current_duration = '''SELECT time FROM codeTracker WHERE date = ?'''
+            duration_tup = cursor.execute(current_duration, (today,))
 
-                #access data from tuple generated from query
-                duration_var = list(duration_tup)[0][0]
-                print(duration_var)
+            #access data from tuple generated from query
+            duration_var = list(duration_tup)[0][0]
+            print("Current saved duration:", duration_var)
 
-                #format and add durations to update table with new duration for current date
-                format_existing_duaration = datetime(year=int(today[:4]), month=int(end_time[5:7]), day=int(end_time[8:10]), hour=int(duration_var[:1]), minute=int(duration_var[2:4]), second=int(duration_var[5:]))
-                format_new_duration = datetime(year=int(today[:4]), month=int(end_time[5:7]), day=int(end_time[8:10]), hour=int(code_duration[:1]), minute=int(code_duration[2:4]), second=int(code_duration[5:]))
+            #format and add durations to update table with new duration for current date
+            format_existing_duaration = datetime(year=int(today[:4]), month=int(end_time[5:7]), day=int(end_time[8:10]), hour=int(duration_var[:2]), minute=int(duration_var[3:5]), second=int(duration_var[6:]))
+            format_new_duration = datetime(year=int(today[:4]), month=int(end_time[5:7]), day=int(end_time[8:10]), hour=int(code_duration[:2]), minute=int(code_duration[3:5]), second=int(code_duration[6:]))
 
-                #CANNOT ADD TWO DATETIMES AS YOU CAN SUBTRACT THEM: ERROR THROWN!!!!!!!!!!!
-                total_duration = format_existing_duaration + format_new_duration
-                print(total_duration)
+            new_duration = add_datetime(str(format_existing_duaration.strftime("%H:%M:%S")), str(format_new_duration.strftime("%H:%M:%S")))
 
-            else:#if today is a new day of coding, add new row
-                sqlite_insert_with_param = '''INSERT INTO 'codeTracker'
-                                            ('date', 'time')
-                                            VALUES (?,?);'''
+            update_query = '''UPDATE codeTracker set time = ? WHERE date = ?'''
+            update_vars = (new_duration, today)
+            cursor.execute(update_query, update_vars)
 
-                data_tuple = (today, code_duration)
-                cursor.execute(sqlite_insert_with_param, data_tuple)
-                sqliteConnection.commit()
+            #get what duration is in table for today
+            current_duration = '''SELECT time FROM codeTracker WHERE date = ?'''
+            duration_tup = cursor.execute(current_duration, (today,))
 
-                print("Session recorded successfully!")
+            #access data from tuple generated from query
+            duration_var = list(duration_tup)[0][0]
+            print("Updated Duration:", duration_var)
+            sqliteConnection.commit()
 
-                #view new table
-                cursor.execute("SELECT * FROM codeTracker")
-                print(cursor.fetchall())
+        else:#if today is a new day of coding, add new row
+            sqlite_insert_with_param = '''INSERT INTO 'codeTracker'
+                                        ('date', 'time')
+                                        VALUES (?,?);'''
+
+            data_tuple = (today, code_duration)
+            cursor.execute(sqlite_insert_with_param, data_tuple)
+            sqliteConnection.commit()
+
+            print("Session recorded successfully!")
+
+            #view new table
+            cursor.execute("SELECT * FROM codeTracker")
+            print("New database:\n",cursor.fetchall())
 
     finally:
         if (sqliteConnection):
             sqliteConnection.close()
             print("sqlite connection is closed")
 
-print(datetime.now().strftime("%Y:%m:%d:%H:%M:%S"))
-trackCodeTime(str(datetime.now().strftime("%Y:%m:%d")), str(duration))
+
+trackCodeTime(str(datetime.now().strftime("%Y:%m:%d")), "0"+str(duration))#concatenate 0 to duration for correct format when indexing time values
