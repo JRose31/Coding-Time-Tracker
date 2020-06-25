@@ -1,6 +1,7 @@
 
 from datetime import datetime
 import sqlite3
+import matplotlib.pyplot as plt
 
 #get current time when script starts
 now = datetime.now()
@@ -133,5 +134,32 @@ def trackCodeTime(today, code_duration):
             sqliteConnection.close()
             print("sqlite connection is closed")
 
+def showProgress():
+    sqliteConnection = sqlite3.connect("SQLite_codeTracker.db")
+    cursor = sqliteConnection.cursor()
+    print("Connected to SQLite...generating visual...")
 
+    #view all current data in database
+    cursor.execute("SELECT * FROM codeTracker")
+    existing = cursor.fetchall()
+    dates = []
+    durations = []
+
+    for data in existing:
+        dates.append(data[0])
+        durations.append(data[1])
+
+    plt.bar(dates, durations)
+    plt.xlabel("Date")
+    plt.ylabel("Duration")
+    plt.title("Your Session Breakdown")
+    plt.show()
+
+
+
+
+#record session time in database
 trackCodeTime(str(datetime.now().strftime("%Y:%m:%d")), "0"+str(duration))#concatenate 0 to duration for correct format when indexing time values
+
+#visualize data
+showProgress()

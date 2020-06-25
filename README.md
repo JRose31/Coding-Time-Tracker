@@ -11,5 +11,4 @@ This script utilizes Python and SQL to track your time spent coding.
 *You can record your timed session multiple times in a day, the script will update your days total session duration.*  
 
 #### Upcoming Functionalities
-- Display personal session data on a graph
 - Dedicated desktop application
