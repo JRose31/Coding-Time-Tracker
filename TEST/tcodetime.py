@@ -2,6 +2,8 @@
 from datetime import datetime
 import sqlite3
 import matplotlib.pyplot as plt
+import pandas as pd
+import time
 
 #get current time when script starts
 now = datetime.now()
@@ -139,9 +141,13 @@ def showProgress():
     cursor = sqliteConnection.cursor()
     print("Connected to SQLite...generating visual...")
 
+    #give user time to see terminal prints
+    time.sleep(3)
+
     #view all current data in database
     cursor.execute("SELECT * FROM codeTracker")
     existing = cursor.fetchall()
+
     dates = []
     durations = []
 
@@ -149,6 +155,8 @@ def showProgress():
         dates.append(data[0])
         durations.append(data[1])
 
+    print("Durations:", durations)
+    print("Dates:", dates)
     plt.bar(dates, durations)
     plt.xlabel("Date")
     plt.ylabel("Duration")
