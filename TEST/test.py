@@ -106,17 +106,22 @@ def plotData():
     sqliteConnection = sqlite3.connect("SQLite_codeTrackerTest.db")
     cursor = sqliteConnection.cursor()
 
+    print("Connected to SQLite...generating visual...")
+
     cursor.execute("SELECT * FROM codeTracker")
     existing = cursor.fetchall()
 
+    #rounds number as integer despite what decimal is
     def truncate(n, decimals=0):
         multiplier = 10 ** decimals
         return int(n * multiplier) / multiplier
 
+    #collect data for plotting
     dates = list(i[0] for i in existing)
     seconds = list(i[1] for i in existing)
     labels = []
 
+    #converts seconds into hour, minutes, seconds string format and add to list of labels
     for i in seconds:
         if i < 60:
             labels.append(str(i) + " seconds")
@@ -133,22 +138,18 @@ def plotData():
             elif minutes < 60:
                 labels.append(str(truncate(hr)) + " hrs " + str(truncate(minutes)) + " minutes ")
 
-    print("Durations:", seconds)
-    print("Labels:", labels)
+    #create graph
+    plt.style.use('ggplot')
+    plt.bar(dates, seconds)
 
-    fig, ax = plt.subplots()
-    ax.bar(dates, seconds)
+    plt.yticks(seconds, labels, rotation=60, fontsize='x-small')
+    plt.xticks(dates, rotation=40, fontsize='x-small')
 
-    counter = 0
-    for i, v in enumerate(seconds):
-        print(v)
-        print(i)
-        ax.text(i-.3, v + 25, labels[counter], fontsize=8, color='black', fontweight='bold')
-        counter += 1
+    plt.xlabel('Dates', fontweight='bold')
+    plt.ylabel('Duration', fontweight='bold')
+    plt.title('Time Tracker Data', fontweight='bold')
 
-    ax.set_title("Coding Time")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Duration (seconds)")
+    plt.tight_layout()
     plt.show()
 
 

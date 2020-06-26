@@ -1,7 +1,7 @@
-import matplotlib.pyplot as plt
-from datetime import datetime
 import time
 import sqlite3
+from datetime import datetime
+import matplotlib.pyplot as plt
 
 start = time.time()
 print("Session began @", datetime.now())
@@ -18,7 +18,7 @@ print("Session Duration:", elapsed)
 def trackCodeTime(today, duration):
     try:
         #create new database if one hasn't been created
-        sqliteConnection = sqlite3.connect("SQLite_codeTracker.db")
+        sqliteConnection = sqlite3.connect("SQLite_codeTrackerTest.db")
         sqlite_create_table_query = '''CREATE TABLE codeTracker (
                                     date TEXT,
                                     time INTEGER);'''
@@ -103,8 +103,10 @@ def trackCodeTime(today, duration):
             print("sqlite connection is closed")
 
 def plotData():
-    sqliteConnection = sqlite3.connect("SQLite_codeTracker.db")
+    sqliteConnection = sqlite3.connect("SQLite_codeTrackerTest.db")
     cursor = sqliteConnection.cursor()
+
+    print("Connected to SQLite...generating visual...")
 
     cursor.execute("SELECT * FROM codeTracker")
     existing = cursor.fetchall()
@@ -137,18 +139,17 @@ def plotData():
                 labels.append(str(truncate(hr)) + " hrs " + str(truncate(minutes)) + " minutes ")
 
     #create graph
-    fig, ax = plt.subplots()
-    ax.bar(dates, seconds)
+    plt.style.use('ggplot')
+    plt.bar(dates, seconds)
 
-    #create labels for bars
-    counter = 0
-    for i, v in enumerate(seconds):
-        ax.text(i-.3, v + 25, labels[counter], fontsize=8, color='black', fontweight='bold')
-        counter += 1
+    plt.yticks(seconds, labels, rotation=60, fontsize='x-small')
+    plt.xticks(dates, rotation=40, fontsize='x-small')
 
-    ax.set_title("Coding Time")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Duration (seconds)")
+    plt.xlabel('Dates', fontweight='bold')
+    plt.ylabel('Duration', fontweight='bold')
+    plt.title('Time Tracker Data', fontweight='bold')
+
+    plt.tight_layout()
     plt.show()
 
 
