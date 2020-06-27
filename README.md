@@ -1,10 +1,20 @@
 # Coding Time Tracker
 #### Track your time spent coding!
 This script utilizes Python and SQL to track your time spent coding.
+
+
+##### Packages and Libraries
+- Matplotlib's pyplot
+- Sqlite3
+- TKinter
+- datetime
+- time
+
 ##### Run Script Instructions
 - Run *codetime.py* in a dedicated terminal.
-*Once script is ran, it is recording the time*
-- Press enter to record session time once you've completed your work.  
+- Press **Start** to begin recording session.
+- Press **Stop** to stop a session and upload data to database.
+- Press **Plot Data** to generate a graph of your database tracker.  
 
 *If this is your first time running the script, a new database will be created.*  
 
