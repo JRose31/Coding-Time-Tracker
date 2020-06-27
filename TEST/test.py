@@ -2,7 +2,7 @@ import time
 import sqlite3
 from datetime import datetime
 import matplotlib.pyplot as plt
-import tkinter as tk
+from tkinter import *
 
 start_time = []
 end_time = []
@@ -262,14 +262,27 @@ def plotData():
 
 
 
-window = tk.Tk()
+window = Tk()
 
-b1 = tk.Button(text = "Start", command=recordTime)
-b2 = tk.Button(text = "Stop", command=stopTime)
-b3 = tk.Button(text = 'Plot Data', command=plotData)
+f1 = Frame(window)
+f1.pack()
+l = Label(f1, text="Coding Time Tracker", font='Helvetica 16 bold')
+l.pack()
+
+f2 = Frame(window)
+f2.pack()
+b1 = Button(f2, text = "Start", command=recordTime, fg='green')
+b2 = Button(f2, text = "Stop", command=stopTime, fg='red')
+b3 = Button(f2, text = 'Plot Data', command=plotData)
 b1.pack(side='left')
 b2.pack(side='left')
 b3.pack(side='left')
 
+f3 = Frame(window)
+f3.pack()
+l2 = Label(f3, text="Instructions:                                                        ", font='Helvetica 14 bold', anchor='w', justify='left')
+l3 = Label(f3, text="Start: begins recoring duration\nStop: stops recording and uploads data to database\nPlot Data: generates a graph from database", anchor='w', justify='left')
+l2.pack()
+l3.pack()
 
 window.mainloop()
