@@ -9,11 +9,21 @@ end_time = []
 durations = []
 counter = 0
 
+def popupmsg(msg):
+    popup = Tk()
+    popup.wm_title("!")
+    label = Label(popup, text=msg)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
+
 def recordTime():
     if len(start_time) == len(end_time):
         start_time.append(time.time())
+        popupmsg("Timer initiated...")
     else:
-        print("Stop timer before starting another session!")
+        popupmsg("Stop timer before starting another session!")
 
 def stopTime():
     #track stop time and get duration
@@ -21,7 +31,6 @@ def stopTime():
         end_time.append(time.time())
         global counter
         durations.append(end_time[counter]-start_time[counter])
-        print("Elapsed time:", durations[counter])
         counter += 1
 
 
@@ -55,6 +64,7 @@ def stopTime():
             sqliteConnection.commit()
 
             print("Session recorded successfully!")
+            popupmsg(("Elapsed time: " + str(durations[counter-1]) + " seconds"))
 
         except:
             print("Table already exists...moving on...")
@@ -95,6 +105,7 @@ def stopTime():
                 duration_var = list(duration_tup)[0][0]
                 print("Updated Duration:", duration_var)
                 sqliteConnection.commit()
+                popupmsg(("Elapsed time: " + str(durations[counter-1]) + " seconds"))
 
             else:#if today is a new day of coding, add new row
                 sqlite_insert_with_param = '''INSERT INTO 'codeTracker'
@@ -110,6 +121,7 @@ def stopTime():
                 #view new table
                 cursor.execute("SELECT * FROM codeTracker")
                 print("New database:\n",cursor.fetchall())
+                popupmsg(("Elapsed time: " + str(durations[counter-1]) + " seconds"))
 
         finally:
             if (sqliteConnection):
@@ -117,104 +129,12 @@ def stopTime():
                 print("sqlite connection is closed")
 #------------------------------------------------------------------------------------------#
     else:
-        print("No active session! Press start to activate new session.")
+        popupmsg("No active session! Press start to activate new session.")
 
-
-
-def trackCodeTime():
-    today = (str(datetime.now().strftime("%Y:%m:%d")))
-    duration = round(sum(durations))
-    try:
-        #create new database if one hasn't been created
-        sqliteConnection = sqlite3.connect("SQLite_codeTrackerTest.db")
-        sqlite_create_table_query = '''CREATE TABLE codeTracker (
-                                    date TEXT,
-                                    time INTEGER);'''
-
-        cursor = sqliteConnection.cursor()
-        print("Successfully Connected to SQLite")
-
-        cursor.execute(sqlite_create_table_query)
-        sqliteConnection.commit()
-
-        print("SQLite table created")
-
-        #create new row for new database
-        sqlite_insert_with_param = '''INSERT INTO 'codeTracker'
-                                    ('date', 'time')
-                                    VALUES (?,?);'''
-
-        data_tuple = (today, duration)
-        cursor.execute(sqlite_insert_with_param, data_tuple)
-        sqliteConnection.commit()
-
-        print("Session recorded successfully!")
-
-    except:
-        print("Table already exists...moving on...")
-
-        #view all current data in database
-        cursor.execute("SELECT * FROM codeTracker")
-        existing = cursor.fetchall()
-        print("Existing data:", existing)
-        print("Today:", today)
-
-        dates = []
-        for i in existing:
-            dates.append(i[0])
-
-
-        #if date exist in table (you coded earlier today)
-        if today in dates:
-
-            #get what duration is in table for today
-            current_duration = '''SELECT time FROM codeTracker WHERE date = ?'''
-            duration_tup = cursor.execute(current_duration, (today,))
-
-            #access data from tuple generated from query
-            duration_var = list(duration_tup)[0][0]
-            print("Current saved duration:", duration_var)
-
-            new_duration = duration_var + duration
-
-            update_query = '''UPDATE codeTracker set time = ? WHERE date = ?'''
-            update_vars = (new_duration, today)
-            cursor.execute(update_query, update_vars)
-
-            #get what duration is in table for today
-            current_duration = '''SELECT time FROM codeTracker WHERE date = ?'''
-            duration_tup = cursor.execute(current_duration, (today,))
-
-            #access data from tuple generated from query
-            duration_var = list(duration_tup)[0][0]
-            print("Updated Duration:", duration_var)
-            sqliteConnection.commit()
-
-        else:#if today is a new day of coding, add new row
-            sqlite_insert_with_param = '''INSERT INTO 'codeTracker'
-                                        ('date', 'time')
-                                        VALUES (?,?);'''
-
-            data_tuple = (today, duration)
-            cursor.execute(sqlite_insert_with_param, data_tuple)
-            sqliteConnection.commit()
-
-            print("Session recorded successfully!")
-
-            #view new table
-            cursor.execute("SELECT * FROM codeTracker")
-            print("New database:\n",cursor.fetchall())
-
-    finally:
-        if (sqliteConnection):
-            sqliteConnection.close()
-            print("sqlite connection is closed")
 
 def plotData():
     sqliteConnection = sqlite3.connect("SQLite_codeTrackerTest.db")
     cursor = sqliteConnection.cursor()
-
-    print("Connected to SQLite...generating visual...")
 
     cursor.execute("SELECT * FROM codeTracker")
     existing = cursor.fetchall()
@@ -271,7 +191,7 @@ l.pack()
 
 f2 = Frame(window)
 f2.pack()
-b1 = Button(f2, text = "Start", command=recordTime, fg='green')
+b1 = Button(f2, text = "Start", command=recordTime, fg='green', highlightcolor='gray', activebackground='blue')
 b2 = Button(f2, text = "Stop", command=stopTime, fg='red')
 b3 = Button(f2, text = 'Plot Data', command=plotData)
 b1.pack(side='left')
